@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   MousePointerClick,
   Rewind,
+  SearchCheck,
   Settings,
   Split,
   Target,
@@ -181,6 +182,14 @@ function SidebarContent() {
           />
         )} */}
         <SidebarComponents.SectionHeader>{t("Health")}</SidebarComponents.SectionHeader>
+        {!privateKey && !embed && !!site?.role && (
+          <SidebarComponents.Item
+            label={t("SEO Audit")}
+            active={isActiveTab("seo")}
+            href={getTabPath("seo")}
+            icon={<SearchCheck className="w-4 h-4" />}
+          />
+        )}
         <SidebarComponents.Item
           label={t("Errors")}
           active={isActiveTab("errors")}
