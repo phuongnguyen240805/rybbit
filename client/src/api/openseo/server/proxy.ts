@@ -7,6 +7,21 @@ const id = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA
 const auditPath = new RegExp(`^projects/${id}/audits(?:/${id}(?:/results)?)?$`);
 const credentialsSchema = z.object({ email: z.string().email(), password: z.string().min(1).max(1024) }).strict();
 
+function publicOrigin(value: string) {
+  const url = new URL(value);
+  const localHttp = url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+  if (
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash ||
+    (url.protocol !== "https:" && !localHttp)
+  )
+    throw new Error("Invalid public origin");
+  return url;
+}
+
 function jsonError(error: string, status: number) {
   return NextResponse.json({ error }, { status, headers: { "Cache-Control": "private, no-store" } });
 }
@@ -70,25 +85,33 @@ export async function handleOpenSeoProxy(request: NextRequest, segments: string[
     : (method === "GET" && (path === "projects" || auditPath.test(path))) ||
       (method === "POST" && new RegExp(`^projects/${id}/audits$`).test(path));
   if (!allowed || request.nextUrl.search) return jsonError("NOT_FOUND", 404);
+  let frontendOrigin: URL;
+  try {
+    frontendOrigin = publicOrigin(process.env.OPENSEO_FRONTEND_ORIGIN ?? request.nextUrl.origin);
+  } catch {
+    return jsonError("OPENSEO_NOT_CONFIGURED", 503);
+  }
   if (
     method !== "GET" &&
-    (request.headers.get("origin") !== request.nextUrl.origin || request.headers.get("x-openseo-client") !== "rybbit")
+    (request.headers.get("origin") !== frontendOrigin.origin || request.headers.get("x-openseo-client") !== "rybbit")
   )
     return jsonError("FORBIDDEN", 403);
+  const secureCookie = process.env.NODE_ENV === "production" && frontendOrigin.protocol === "https:";
 
   let base: URL;
+  let target: URL;
   const secret = process.env.OPENSEO_SESSION_SECRET ?? "";
   try {
     if (secret.length < 32) throw new Error();
-    base = new URL(process.env.OPENSEO_BASE_URL ?? "");
-    const localHttp = base.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(base.hostname);
+    base = publicOrigin(process.env.OPENSEO_BASE_URL ?? "");
+    target = new URL(process.env.OPENSEO_INTERNAL_URL ?? base.origin);
     if (
-      base.username ||
-      base.password ||
-      base.pathname !== "/" ||
-      base.search ||
-      base.hash ||
-      (base.protocol !== "https:" && !(process.env.NODE_ENV !== "production" && localHttp))
+      !["http:", "https:"].includes(target.protocol) ||
+      target.username ||
+      target.password ||
+      target.pathname !== "/" ||
+      target.search ||
+      target.hash
     )
       throw new Error();
   } catch {
@@ -141,7 +164,7 @@ export async function handleOpenSeoProxy(request: NextRequest, segments: string[
         ? "/api/auth/sign-out"
         : `/api/integrations/v1/${path}`;
   try {
-    const upstream = await fetch(new URL(upstreamPath, base), {
+    const upstream = await fetch(new URL(upstreamPath, target), {
       method: method === "DELETE" ? "POST" : method,
       headers: {
         "Content-Type": "application/json",
@@ -173,7 +196,7 @@ export async function handleOpenSeoProxy(request: NextRequest, segments: string[
       const maxAge = Number(setCookie.match(/;\s*Max-Age=(\d+)/i)?.[1] ?? 3600);
       response.cookies.set(cookieName, sealSession(setCookie.split(";")[0], userId, secret), {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: secureCookie,
         sameSite: "strict",
         path: "/api/openseo",
         maxAge: Math.min(maxAge, 7 * 24 * 3600),
@@ -183,7 +206,7 @@ export async function handleOpenSeoProxy(request: NextRequest, segments: string[
       response = NextResponse.json({ data: { connected: false } }, { status: upstream.ok ? 200 : 502 });
       response.cookies.set(cookieName, "", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: secureCookie,
         sameSite: "strict",
         path: "/api/openseo",
         maxAge: 0,

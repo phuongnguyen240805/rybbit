@@ -1,0 +1,80 @@
+# Merge after docker-compose.yml and ../open-seo/deploy/standalone/compose.yaml.
+# Use project name kedi-seo-local; keep all data in that project's new volumes.
+services:
+  clickhouse:
+    container_name: kedi-seo-local-rybbit-clickhouse
+    mem_limit: 1536m
+    cpus: 1
+  postgres:
+    container_name: kedi-seo-local-rybbit-postgres
+    mem_limit: 256m
+    cpus: 0.5
+  redis:
+    container_name: kedi-seo-local-rybbit-redis
+    mem_limit: 96m
+    cpus: 0.25
+  backend:
+    container_name: kedi-seo-local-rybbit-backend
+    mem_limit: 512m
+    cpus: 1
+    environment:
+      NODE_ENV: development
+      NODE_OPTIONS: --max-old-space-size=384
+      CLUSTER_WORKERS: "1"
+    healthcheck:
+      start_period: 120s
+      interval: 5s
+      retries: 20
+  client:
+    image: kedi-seo-local/rybbit-client:dev
+    container_name: kedi-seo-local-rybbit-client
+    mem_limit: 768m
+    cpus: 1
+    build:
+      args:
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:3002
+        RYBBIT_INTERNAL_URL: http://backend:3001
+        NEXT_PUBLIC_CLOUD: "false"
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:3002
+      OPENSEO_BASE_URL: http://127.0.0.1:3003
+      OPENSEO_FRONTEND_ORIGIN: http://localhost:3002
+      OPENSEO_INTERNAL_URL: http://web
+      OPENSEO_SESSION_SECRET: ${OPENSEO_SESSION_SECRET:?Set a random session encryption secret}
+      RYBBIT_INTERNAL_URL: http://backend:3001
+    depends_on:
+      backend:
+        condition: service_healthy
+  storage:
+    mem_limit: 384m
+    cpus: 0.5
+  runtime:
+    mem_limit: 1536m
+    cpus: 1
+    environment:
+      CELLD_MAX_RSS_MB: "1024"
+      CELLD_MAX_RESIDENT_CELLS: "16"
+      CELLD_V8_HEAP_LIMIT_MB: "256"
+    volumes:
+      - type: bind
+        source: ${OPENSEO_BUNDLE_DIR:-../open-seo/dist/celld}
+        target: /opt/openseo
+        read_only: true
+  init:
+    mem_limit: 384m
+    cpus: 1
+    volumes:
+      - type: bind
+        source: ${OPENSEO_BUNDLE_DIR:-../open-seo/dist/celld}
+        target: /opt/openseo
+        read_only: true
+  crawl-gateway:
+    mem_limit: 128m
+    cpus: 0.5
+  web:
+    mem_limit: 64m
+    cpus: 0.25
+    depends_on:
+      runtime:
+        condition: service_healthy
+        restart: true

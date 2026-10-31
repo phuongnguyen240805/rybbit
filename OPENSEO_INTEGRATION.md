@@ -68,6 +68,63 @@ Open `http://localhost:3002`, sign in to Rybbit and select your site. Open
 matching OpenSEO project and run an audit. An empty project list requires creating
 or joining the project in OpenSEO first.
 
+## Docker local pilot
+
+Use the paired checkouts as sibling directories. The overlay
+`compose.openseo.local.yaml` combines Rybbit's analytics services with OpenSEO's
+standalone runtime. It caps each container's memory and CPU without changing
+Docker Desktop's global limits or other projects. Runtime use should be measured;
+the caps are ceilings, not promised savings. Image builds use extra resources
+temporarily. Stop host dev servers before starting the Docker stack.
+
+1. Copy `docker-openseo.env.example` to a private file outside Git and replace
+   every secret placeholder with independently generated random values.
+2. From OpenSEO run `pnpm build:standalone`. The resulting `dist/celld` bundle is
+   platform-neutral JS/WASM and is mounted read-only into the official runtime
+   image, so the new integration API is included without installing a second
+   OpenSEO development toolchain inside Docker.
+3. From Rybbit run the commands below, pointing `--env-file` at that private file.
+   Starting the fresh stack applies the applications' existing migrations to its
+   new local volumes. Do not use existing production volume names.
+
+```powershell
+docker compose -p kedi-seo-local --env-file ../.local/stack.env -f docker-compose.yml -f ../open-seo/deploy/standalone/compose.yaml -f compose.openseo.local.yaml build client
+docker compose -p kedi-seo-local --env-file ../.local/stack.env -f docker-compose.yml -f ../open-seo/deploy/standalone/compose.yaml -f compose.openseo.local.yaml up -d --no-build backend client storage runtime init crawl-gateway web
+docker stats --no-stream
+```
+
+Use **http://localhost:3002** for Rybbit and **http://127.0.0.1:3003** for OpenSEO
+initial account/project setup. Keep these hostnames distinct to separate the two
+applications' own login cookies. The BFF uses `OPENSEO_INTERNAL_URL=http://web`
+for transport and the public `OPENSEO_BASE_URL` for authentication Origin. Only
+operator configuration can set either URL. HTTP public origins are accepted only
+on loopback; production domains require HTTPS. The BFF's cookie is Secure on
+non-loopback production hosts and HttpOnly/SameSite=Strict everywhere.
+
+The Docker frontend serves Rybbit's `/api/*` paths through a `beforeFiles` rewrite to
+`http://backend:3001`, so its generated tracking snippet and login callbacks work
+at the public frontend origin even without Caddy. The rewrite explicitly excludes
+`/api/openseo/*`; secondary OpenSEO session requests
+continue to use their dedicated BFF. The frontend image must be rebuilt after
+changing the internal rewrite address.
+
+`OPENSEO_FRONTEND_ORIGIN=http://localhost:3002` pins the browser origin for CSRF
+checks; Next.js's internal `0.0.0.0` bind hostname is not a browser origin. Do not
+derive this setting from an untrusted request header. The runtime retains 16 cell
+slots for nested workflow/Durable Object calls; lowering this to four can fail
+an audit with `CapacityExhausted` even when RAM remains available. If recreating
+the runtime manually with `--no-deps`, restart `web` afterward so Nginx resolves
+the replacement container's IP.
+
+The example pins Rybbit's backend to the inspected upstream SHA and OpenSEO's
+runtime to 0.1.22. Recheck these pins when updating either checkout. The frontend
+image is built from the modified Rybbit source; using an unmodified published
+frontend image would omit this feature.
+
+To stop, use the same Compose arguments with `stop`. To resume use `up -d
+--no-build` with the same services. Keep the volumes and private env file; do not
+use `down -v` unless you intentionally want to erase this local environment.
+
 ## API boundary
 
 | BFF route                                               | OpenSEO upstream                       |

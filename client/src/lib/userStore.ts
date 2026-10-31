@@ -14,9 +14,13 @@ export const userStore = create<{
   setIsPending: isPending => set({ isPending }),
 }));
 
-authClient.getSession().then(({ data: session }) => {
-  userStore.setState({
-    user: session?.user,
-    isPending: false,
+// The browser owns this store and its cookie-backed session. SSR has no
+// browser cookies and cannot use the public API's loopback URL inside Docker.
+if (typeof window !== "undefined") {
+  authClient.getSession().then(({ data: session }) => {
+    userStore.setState({
+      user: session?.user,
+      isPending: false,
+    });
   });
-});
+}

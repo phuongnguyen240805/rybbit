@@ -269,7 +269,7 @@ function ProjectAudits({
             <span>{t("Max pages")}</span>
             <Input
               type="number"
-              min={1}
+              min={10}
               max={500}
               value={maxPages}
               onChange={event => setMaxPages(Number(event.target.value))}

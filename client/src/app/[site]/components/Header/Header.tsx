@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useGetSite } from "../../../../api/admin/hooks/useSites";
 import { FreePlanBanner } from "../../../../components/FreePlanBanner";
 import { useStore } from "../../../../lib/store";
+import { getSiteRouteContext } from "../../../../lib/siteRoute";
 import { userStore } from "../../../../lib/userStore";
 import { PlanRequiredNotice, useCheckoutReturn } from "../../../components/PlanRequired";
 import { AffiliateBanner } from "./AffiliateBanner";
@@ -31,6 +32,7 @@ export function Header() {
   const isUnclaimed = !!siteMetadata && siteMetadata.organizationId === null && !!siteMetadata.claimExpiresAt;
 
   const isGlobe = pathname.includes("/globe");
+  const isSeo = getSiteRouteContext(pathname).route === "seo";
 
   if (!user && !isUnclaimed) {
     return <div className="flex flex-col" />;
@@ -56,7 +58,7 @@ export function Header() {
             <UsageBanners />
           </>
         )}
-        {!isGlobe && !requiresPlan && <NoData />}
+        {!isGlobe && !isSeo && !requiresPlan && <NoData />}
       </div>
     </div>
   );

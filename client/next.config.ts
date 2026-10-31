@@ -16,6 +16,16 @@ const withNextIntl = createNextIntlPlugin({
 });
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    const backend = process.env.RYBBIT_INTERNAL_URL?.replace(/\/$/, "");
+    return backend
+      ? {
+          // /api/user/* also matches the dynamic profile page. Route Rybbit
+          // API calls first while explicitly retaining OpenSEO's local BFF.
+          beforeFiles: [{ source: "/api/:path((?!openseo(?:/|$)).*)", destination: `${backend}/api/:path` }],
+        }
+      : [];
+  },
   output: "standalone",
   outputFileTracingRoot: path.resolve(__dirname, ".."),
   turbopack: {

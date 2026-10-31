@@ -54,6 +54,38 @@ afterEach(() => {
 });
 
 describe("OpenSEO BFF", () => {
+  it("uses Docker's private transport while preserving the public auth origin", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("OPENSEO_BASE_URL", "http://127.0.0.1:3003");
+    vi.stubEnv("OPENSEO_INTERNAL_URL", "http://web");
+    vi.stubEnv("OPENSEO_FRONTEND_ORIGIN", "http://localhost:3002");
+    upstream = () =>
+      Response.json({}, { headers: { "Set-Cookie": "better-auth.session_token=local-token; Max-Age=3600; HttpOnly" } });
+    const response = await handleOpenSeoProxy(
+      new NextRequest("http://0.0.0.0:3002/api/openseo/session", {
+        method: "POST",
+        headers: {
+          Cookie: browserCookie,
+          Origin: "http://localhost:3002",
+          "Content-Type": "application/json",
+          "X-OpenSEO-Client": "rybbit",
+        },
+        body: JSON.stringify({ email: "person@example.com", password: "password" }),
+      }),
+      ["session"]
+    );
+    expect(response.status).toBe(200);
+    const call = network.mock.calls[1];
+    expect(String(call[0])).toBe("http://web/api/auth/sign-in/email");
+    expect(new Headers(call[1]?.headers).get("Origin")).toBe("http://127.0.0.1:3003");
+    expect(response.cookies.get("openseo_session")?.secure).toBe(false);
+  });
+
+  it("requires HTTPS for a non-loopback public OpenSEO origin", async () => {
+    vi.stubEnv("OPENSEO_BASE_URL", "http://seo.example.com");
+    expect((await handleOpenSeoProxy(request("session"), ["session"])).status).toBe(503);
+    expect(network).not.toHaveBeenCalled();
+  });
   it("stores an encrypted HttpOnly session and never returns the upstream token", async () => {
     const response = await connect();
     expect(await response.json()).toEqual({ data: { connected: true } });
