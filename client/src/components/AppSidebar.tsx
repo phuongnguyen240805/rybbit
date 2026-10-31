@@ -17,6 +17,7 @@ import { useStore } from "../lib/store";
 import { useStripeSubscription } from "../lib/subscription/useStripeSubscription";
 import { cn } from "../lib/utils";
 import { RybbitLogo } from "./RybbitLogo";
+import { useKediEmbed } from "./openseo/KediEmbedProvider";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
@@ -37,6 +38,7 @@ function AdminLink() {
 }
 
 function AppSidebarContent() {
+  const kediAppearance = useKediEmbed();
   const { data: session } = authClient.useSession();
   const embed = useEmbedablePage();
   const t = useExtracted();
@@ -52,7 +54,7 @@ function AppSidebarContent() {
   const isUnclaimedSite =
     onSiteRoute && !!siteMetadata && siteMetadata.organizationId === null && !!siteMetadata.claimExpiresAt;
 
-  if (embed) return null;
+  if (embed || kediAppearance) return null;
 
   return (
     <div className="flex flex-col items-center justify-between h-dvh w-[45px] shrink-0 p-2 py-3 bg-neutral-50 dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-850 gap-3">

@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth";
+import { useKediEmbed } from "./KediEmbedProvider";
 
 function ErrorMessage({ error }: { error: Error | null }) {
   const t = useExtracted();
@@ -55,6 +56,17 @@ function ErrorMessage({ error }: { error: Error | null }) {
       {message}
     </p>
   );
+}
+
+function AuditStatus({ status }: { status: string }) {
+  const t = useExtracted();
+  return <>{({ running: t("Running"), completed: t("Completed"), failed: t("Failed"),
+    pending: t("Pending"), queued: t("Queued"), cancelled: t("Cancelled") } as Record<string, string>)[status] ?? status}</>;
+}
+
+function IssueSeverity({ severity }: { severity: string }) {
+  const t = useExtracted();
+  return <>{({ warning: t("Warning"), info: t("Information"), error: t("Error") } as Record<string, string>)[severity] ?? severity}</>;
 }
 
 function OpenSeoLogin({ onConnected }: { onConnected: () => Promise<unknown> }) {
@@ -132,7 +144,7 @@ function AuditResults({ identity, projectId, auditId }: { identity: string; proj
           <>
             <p className="break-all text-sm">{status.data.startUrl}</p>
             <p className="text-sm">
-              {status.data.status} · {status.data.pagesCrawled} / {status.data.pagesTotal} {t("Pages")}
+              <AuditStatus status={status.data.status} /> · {status.data.pagesCrawled} / {status.data.pagesTotal} {t("Pages")}
             </p>
             {status.data.status === "running" && (
               <p className="text-sm text-neutral-500">{t("The audit is running. Progress updates automatically.")}</p>
@@ -176,7 +188,7 @@ function AuditResults({ identity, projectId, auditId }: { identity: string; proj
                 <tbody>
                   {issues.slice(page * 50, (page + 1) * 50).map(issue => (
                     <tr key={issue.id} className="border-b dark:border-neutral-800">
-                      <td className="p-2">{issue.severity}</td>
+                      <td className="p-2"><IssueSeverity severity={issue.severity} /></td>
                       <td className="p-2">{issue.issueType.replaceAll("_", " ")}</td>
                       <td className="p-2 break-all">{issue.pageUrl}</td>
                     </tr>
@@ -310,7 +322,7 @@ function ProjectAudits({
           >
             {history.data.map(audit => (
               <option key={audit.id} value={audit.id}>
-                {audit.startedAt} · {audit.status} · {audit.startUrl}
+                {audit.startedAt} · <AuditStatus status={audit.status} /> · {audit.startUrl}
               </option>
             ))}
           </select>
@@ -322,6 +334,7 @@ function ProjectAudits({
 }
 
 function ConnectedSeo({ identity }: { identity: string }) {
+  const kediAppearance = useKediEmbed();
   const t = useExtracted();
   const projects = useOpenSeoProjects(identity);
   const [projectId, setProjectId] = useQueryState("seoProject", parseAsString.withDefault(""));
@@ -329,7 +342,7 @@ function ConnectedSeo({ identity }: { identity: string }) {
   return (
     <div className="space-y-5">
       <label className="block max-w-xl space-y-2 text-sm">
-        <span>{t("OpenSEO project")}</span>
+        <span>{kediAppearance ? t("SEO project") : t("OpenSEO project")}</span>
         <select
           className="w-full rounded-lg border p-2 dark:bg-neutral-900 dark:border-neutral-700"
           value={project?.id ?? ""}
@@ -373,6 +386,7 @@ export function SeoAuditPage({ siteId }: { siteId: string }) {
 }
 
 function SeoAccount({ siteName, rybbitUserId }: { siteName: string; rybbitUserId: string }) {
+  const kediAppearance = useKediEmbed();
   const t = useExtracted();
   const client = useQueryClient();
   const session = useOpenSeoSession(rybbitUserId);
@@ -390,7 +404,7 @@ function SeoAccount({ siteName, rybbitUserId }: { siteName: string; rybbitUserId
         <div>
           <h1 className="text-xl font-semibold">{t("SEO Audit")}</h1>
           <p className="mt-1 text-sm text-neutral-500">
-            {siteName} · {t("SEO data from OpenSEO. Traffic and events remain in Rybbit.")}
+            {siteName} · {kediAppearance ? t("SEO overview for your website.") : t("SEO data from OpenSEO. Traffic and events remain in Rybbit.")}
           </p>
         </div>
         {session.data && (

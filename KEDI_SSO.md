@@ -28,6 +28,16 @@ Identity mapping is deterministic: SHA-256 of JSON `[issuer, appCode, organizati
 
 Use HTTPS subdomains under one site in deployment. Arbitrary cross-site third-party cookie embedding is not supported. Frame ancestors are restricted to the configured Kedi Admin origin. Logout/revocation has a maximum 60-second delegation window. Backends should remain private.
 
+## Embedded appearance and language
+
+Kedi Admin sends `kedi-seo:appearance` with an allowlisted locale and light/dark theme. It reads the parent's `html.lang` (currently Vietnamese) and dark class, observes changes and resends preferences when the frame is ready. This is separate from the signed session exchange. The child accepts messages only from the configured parent origin and exact parent window. Appearance preferences never authorize data access.
+
+The child persists presentation preferences, updates next-intl through its locale cookie/router refresh and forces next-themes to the parent theme. A scoped `data-kedi-embed` stylesheet supplies Kedi navy/yellow colors, system font, border radii and contrast. The Rybbit account rail, own account/organization settings menu and marketing footer are hidden in the embedded UI; chart branding uses Kedi assets. Standalone branding remains available outside a parent frame. Locale choice is persisted in the dashboard locale cookie.
+
+Vietnamese covers the core SEO audit, website onboarding, analytics navigation, dates and common actions. Untranslated advanced labels retain the existing English fallback. Technical issue identifiers and user-entered project/site names remain unchanged. Visual branding does not conceal the underlying implementation from source/network inspection.
+
+Browser verification used the actual parent frame component and Docker frontend: Vietnamese/light → English/dark → Vietnamese/light, while both authenticated APIs stayed at 200. The scoped styling, vendor footer removal and standalone branding were checked. The related client suite passed 36 tests. Kedi parent type checks passed after regenerating Next route types. The existing client lint configuration is empty and its repository-wide command reports missing rules in generated `.next` files; it is not useful lint validation for this feature.
+
 ## Local verification, 2026-10-31
 
 - Rybbit integration tests: 30; OpenSEO integration tests: 18; Kedi BFF and Nest membership tests: 8. The Rybbit frontend production Docker build, OpenSEO standalone build and backend TypeScript compilation passed.

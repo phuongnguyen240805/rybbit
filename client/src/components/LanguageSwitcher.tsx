@@ -12,6 +12,7 @@ import {
 } from "./ui/select";
 
 const LOCALE_OPTIONS = [
+  { value: "vi", label: "Tiếng Việt", country: "VN" },
   { value: "en", label: "English", country: "US" },
   { value: "de", label: "Deutsch", country: "DE" },
   { value: "fr", label: "Français", country: "FR" },

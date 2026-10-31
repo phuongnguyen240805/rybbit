@@ -7,8 +7,10 @@ import { useOrgPermissions } from "../../hooks/usePermissions";
 import { IS_CLOUD } from "../../lib/const";
 import { OrganizationSelector } from "../OrganizationSelector";
 import { Sidebar } from "./Sidebar";
+import { useKediEmbed } from "../openseo/KediEmbedProvider";
 
 export function NavigationSidebar() {
+  const kediAppearance = useKediEmbed();
   const t = useExtracted();
   const pathname = usePathname();
   const { can } = useOrgPermissions();
@@ -33,6 +35,7 @@ export function NavigationSidebar() {
           href="/rollup"
           icon={<Combine className="w-4 h-4" />}
         />
+        {!kediAppearance && <>
         <Sidebar.SectionHeader>{t("Personal")}</Sidebar.SectionHeader>
         <Sidebar.Item
           label={t("Account")}
@@ -65,6 +68,7 @@ export function NavigationSidebar() {
             icon={<CreditCard className="w-4 h-4" />}
           />
         )}
+        </>}
       </Sidebar.Items>
     </Sidebar.Root>
   );

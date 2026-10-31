@@ -20,6 +20,7 @@ import { OrganizationInitializer } from "../components/OrganizationInitializer";
 import { Toaster } from "../components/ui/sonner";
 import { VersionCheck } from "../components/VersionCheck";
 import { TooltipProvider } from "../components/ui/tooltip";
+import { useKediEmbed } from "../components/openseo/KediEmbedProvider";
 
 type EmbedTheme = "light" | "dark" | "system";
 
@@ -53,6 +54,7 @@ function getEmbedTheme(): EmbedTheme | null {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const kediAppearance = useKediEmbed();
   useStopImpersonation();
   const appEnv = useAppEnv();
   const embedTheme = getEmbedTheme();
@@ -63,6 +65,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {/* Honors the OS "reduce motion" setting for every framer animation in the app. */}
       <MotionConfig reducedMotion="user">
         <ThemeProvider
+          forcedTheme={kediAppearance?.theme}
           key={themeStorageKey}
           attribute="class"
           enableSystem={true}
@@ -78,16 +81,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
               {children}
               {/* ⌘K palette and "?" shortcut sheet; renders nothing for signed-out visitors. */}
               <CommandPalette />
-              <VersionCheck />
+              {!kediAppearance && <VersionCheck />}
             </QueryProvider>
             <Toaster />
           </TooltipProvider>
         </ThemeProvider>
       </MotionConfig>
-      {appEnv === "prod" && (
+      {!kediAppearance && appEnv === "prod" && (
         <Script src="https://demo.rybbit.com/api/script.js" data-site-id="21" strategy="afterInteractive" />
       )}
-      {appEnv === "demo" && (
+      {!kediAppearance && appEnv === "demo" && (
         <Script src="https://demo.rybbit.com/api/script.js" data-site-id="22" strategy="afterInteractive" />
       )}
       {appEnv === "prod" && IS_CLOUD && (

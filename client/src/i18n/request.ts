@@ -1,8 +1,9 @@
 import { getRequestConfig } from "next-intl/server";
 import { cookies, headers } from "next/headers";
 import { withEnglishFallback } from "./messageFallback";
+import { dashboardLocales } from "../lib/kediAppearance";
 
-const SUPPORTED_LOCALES = ["en", "de", "fr", "zh", "es", "pl", "it", "ko", "pt", "ja", "cs", "uk"] as const;
+const SUPPORTED_LOCALES = dashboardLocales;
 type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 function isSupportedLocale(locale: string): locale is SupportedLocale {

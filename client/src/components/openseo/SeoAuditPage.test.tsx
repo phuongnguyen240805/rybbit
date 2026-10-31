@@ -118,7 +118,7 @@ describe("standalone SEO audit flow", () => {
     hasHistory = true;
     render(page());
     await screen.findByText("missing description");
-    screen.getByText("warning");
+    screen.getByText("Warning");
     screen.getByRole("heading", { name: "Crawled pages" });
     screen.getByText("Store");
   });

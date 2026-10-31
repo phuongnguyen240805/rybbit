@@ -10,7 +10,7 @@ function getTextLogoHeight(width: number, height?: number) {
 }
 
 export function RybbitLogo({ width = 32, height = 32 }: { width?: number; height?: number }) {
-  const { whiteLabelImage, isPending } = useWhiteLabel();
+  const { whiteLabelImage, isPending, brandName = "Rybbit" } = useWhiteLabel();
   const [mounted, setMounted] = useState(false);
   const imageStyle = { width, height, objectFit: "contain" as const };
 
@@ -23,7 +23,7 @@ export function RybbitLogo({ width = 32, height = 32 }: { width?: number; height
   }
 
   if (whiteLabelImage) {
-    return <Image src={whiteLabelImage} alt="Rybbit" width={width} height={height} style={imageStyle} />;
+    return <Image src={whiteLabelImage} alt={brandName} width={width} height={height} style={imageStyle} />;
   }
 
   return (
@@ -39,7 +39,7 @@ export function RybbitLogo({ width = 32, height = 32 }: { width?: number; height
 }
 
 export function RybbitTextLogo({ width = 150, height }: { width?: number; height?: number }) {
-  const { whiteLabelImage, isPending } = useWhiteLabel();
+  const { whiteLabelImage, isPending, brandName = "Rybbit" } = useWhiteLabel();
   const [mounted, setMounted] = useState(false);
   const resolvedHeight = getTextLogoHeight(width, height);
   const imageStyle = { width, height: resolvedHeight, objectFit: "contain" as const };
@@ -56,7 +56,7 @@ export function RybbitTextLogo({ width = 150, height }: { width?: number; height
     return (
       <Image
         src={whiteLabelImage}
-        alt="Rybbit"
+        alt={brandName}
         width={width}
         height={resolvedHeight}
         style={imageStyle}

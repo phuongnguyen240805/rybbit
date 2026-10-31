@@ -13,8 +13,10 @@ import { Favicon } from "../../../../components/Favicon";
 import { AppSidebar } from "../../../../components/AppSidebar";
 import { useEmbedablePage } from "../../utils";
 import { Suspense } from "react";
+import { useKediEmbed } from "../../../../components/openseo/KediEmbedProvider";
 
 function MobileSidebarContent() {
+  const appearance = useKediEmbed();
   const t = useExtracted();
   const pathname = usePathname();
   const { data: site } = useGetSite(Number(pathname.split("/")[1]));
@@ -32,7 +34,7 @@ function MobileSidebarContent() {
         </SheetTrigger>
         <VisuallyHidden>
           <SheetHeader>
-            <SheetTitle>{t("Rybbit Sidebar")}</SheetTitle>
+            <SheetTitle>{appearance ? t("Navigation") : t("Rybbit Sidebar")}</SheetTitle>
           </SheetHeader>
         </VisuallyHidden>
         <SheetContent side="left" className="p-0 w-[240px] flex gap-0" showClose={false}>
