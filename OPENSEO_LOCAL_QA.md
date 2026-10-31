@@ -29,7 +29,7 @@ OpenSEO audit backend. Kedi Admin and production websites were not changed.
   check `node client/scripts/check-seo-local.mjs` covers this boundary.
 - Unauthenticated local integration API requests return 401 and private/no-store
   cache headers.
-- 42 targeted automated tests passed across both checkouts: API authorization,
+- 44 targeted automated tests passed across both checkouts: API authorization,
   audit behavior, encrypted session isolation, Origin/redirect controls and UI.
 - Production frontend and standalone OpenSEO builds completed with type checks.
 - Five read-only HTTP smoke checks passed on the final Docker image, including
@@ -37,6 +37,11 @@ OpenSEO audit backend. Kedi Admin and production websites were not changed.
   Origin. The final browser check displayed navigation and completed results.
 
 ## Issues resolved during actual startup
+
+- Empty French translations hid the SEO sidebar label and new form text. Blank
+  or missing translations now fall back to English while preserving completed
+  translations. A French-locale browser check verified the SEO link, heading and
+  project label remain visible.
 
 - Windows path separators bypassed the standalone packager's `.assetsignore`
   filter. Using `path.basename` fixes the artifact; celld then deploys it.
