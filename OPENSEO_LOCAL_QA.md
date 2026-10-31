@@ -32,6 +32,9 @@ OpenSEO audit backend. Kedi Admin and production websites were not changed.
 - 42 targeted automated tests passed across both checkouts: API authorization,
   audit behavior, encrypted session isolation, Origin/redirect controls and UI.
 - Production frontend and standalone OpenSEO builds completed with type checks.
+- Five read-only HTTP smoke checks passed on the final Docker image, including
+  the API/page routing boundary, tracking script and rejection of an untrusted
+  Origin. The final browser check displayed navigation and completed results.
 
 ## Issues resolved during actual startup
 
@@ -61,6 +64,11 @@ This validates the audit MVP. Persistent Rybbit-site/OpenSEO-project mapping,
 Kedi SSO, external-tenant rollout, other SEO screens, GSC/provider credentials,
 commerce conversion events and production tracking remain subsequent work.
 Analytics for the newly created local site is initially empty.
+
+One repeated browser run emitted React #418 hydration recovery warnings. The
+page recovered and displayed completed results, and subsequent API checks passed.
+Investigating this hydration mismatch remains a frontend release-hardening task;
+this local audit MVP is not an external-tenant production release.
 
 Container memory/CPU limits are defined in `compose.openseo.local.yaml`. A runtime
 snapshot during the pilot was approximately 1.5 GiB across the application stack;
