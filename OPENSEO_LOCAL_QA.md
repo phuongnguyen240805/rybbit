@@ -70,6 +70,12 @@ page recovered and displayed completed results, and subsequent API checks passed
 Investigating this hydration mismatch remains a frontend release-hardening task;
 this local audit MVP is not an external-tenant production release.
 
+The celld runtime also reported four restarts during this session's longer run.
+At inspection it was healthy, the last recorded exit code was 0, and Docker did
+not report an OOM. The cause is not established. Completed audit data survived;
+investigate these restarts and perform a longer stability test before enabling
+customer traffic or embedding the application into Kedi.
+
 Container memory/CPU limits are defined in `compose.openseo.local.yaml`. A runtime
 snapshot during the pilot was approximately 1.5 GiB across the application stack;
 usage varies with requests, retained cells and ClickHouse work. Build-time usage
