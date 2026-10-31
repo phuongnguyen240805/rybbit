@@ -382,6 +382,7 @@ function SeoAccount({ siteName, rybbitUserId }: { siteName: string; rybbitUserId
     await client.resetQueries({ queryKey: [...openSeoKey, "session", rybbitUserId], exact: true });
   };
   const logout = useMutation({ mutationFn: signOutOpenSeo, onSettled: refreshSession });
+  const kediManaged = rybbitUserId.startsWith("kedi-");
   const identity = session.data ? `${rybbitUserId}:${session.data.userId}:${session.data.organizationId}` : "";
   return (
     <div className="mx-auto max-w-6xl p-4 md:p-6 space-y-6">
@@ -394,11 +395,11 @@ function SeoAccount({ siteName, rybbitUserId }: { siteName: string; rybbitUserId
         </div>
         {session.data && (
           <div className="flex items-center gap-3 text-sm">
-            <span>{session.data.email}</span>
-            <Button onClick={() => logout.mutate()} loading={logout.isPending}>
+            <span>{kediManaged ? "Kedi Admin" : session.data.email}</span>
+            {!kediManaged && <Button onClick={() => logout.mutate()} loading={logout.isPending}>
               <LogOut />
               {t("Disconnect OpenSEO")}
-            </Button>
+            </Button>}
           </div>
         )}
       </header>
@@ -412,7 +413,8 @@ function SeoAccount({ siteName, rybbitUserId }: { siteName: string; rybbitUserId
           {session.error instanceof OpenSeoError && session.error.status !== 401 && (
             <ErrorMessage error={session.error} />
           )}
-          <OpenSeoLogin onConnected={refreshSession} />
+          {kediManaged ? <p role="alert">Phiên Kedi SEO không khả dụng. Hãy mở lại từ Kedi Admin.</p>
+            : <OpenSeoLogin onConnected={refreshSession} />}
         </>
       )}
     </div>

@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { kediSsoPlugin } from "./kediSso.js";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { admin, captcha, emailOTP, organization } from "better-auth/plugins";
 import { createAccessControl } from "better-auth/plugins/access";
@@ -70,6 +71,7 @@ const orgRoles = {
 const apiKeyRateLimit = { enabled: false };
 
 const pluginList = [
+  kediSsoPlugin(),
   admin(),
   ...createOAuthPlugins(getAuthBaseUrl()),
   apiKey([

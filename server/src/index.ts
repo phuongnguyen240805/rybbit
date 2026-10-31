@@ -14,6 +14,7 @@ import { registerApiErrorResponses } from "./lib/api-errors.js";
 import { apiRoutes } from "./api/routes.js";
 import type { OrgRole, ScopeStatements } from "@rybbit/shared";
 import { auth } from "./lib/auth.js";
+import { kediSessionGuard } from "./lib/kediSso.js";
 import { oauthWellKnownRoutes } from "./mcp/wellKnown.js";
 import { createCorsOptionsDelegate, createRejectUntrustedOriginHook } from "./lib/cors.js";
 import { IS_CLOUD } from "./lib/const.js";
@@ -49,6 +50,7 @@ const server = Fastify({
 
 registerRequestLogging(server);
 registerApiErrorResponses(server);
+server.addHook("preHandler", kediSessionGuard(auth));
 
 server.register(cors, {
   delegator: createCorsOptionsDelegate(),

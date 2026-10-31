@@ -65,6 +65,7 @@
     "i18n-iso-countries": "^7.14.0",
     "ioredis": "^5.8.2",
     "ip-address": "^10.0.1",
+    "jose": "^6.2.12",
     "luxon": "3.7.2",
     "nanoid": "^5.1.6",
     "node-cache": "^5.1.2",

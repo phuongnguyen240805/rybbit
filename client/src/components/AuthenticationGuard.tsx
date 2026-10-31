@@ -5,7 +5,7 @@ import { redirect, usePathname } from "next/navigation";
 import { userStore } from "../lib/userStore";
 import { useGetSiteIsPublic } from "../api/admin/hooks/useSites";
 
-const PUBLIC_ROUTES = ["/login", "/signup", "/try", "/invitation", "/reset-password", "/as/callback", "/auth/consent"];
+const PUBLIC_ROUTES = ["/kedi", "/login", "/signup", "/try", "/invitation", "/reset-password", "/as/callback", "/auth/consent"];
 // Pages under these prefixes show their own sign-in form, e.g. /transfer/<id>.
 const PUBLIC_ROUTE_PREFIXES = ["/transfer/"];
 

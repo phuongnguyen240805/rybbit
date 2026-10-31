@@ -1,6 +1,7 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { kediCookie, readKediSession } from "@/api/kedi/server/session";
 
 const cookieName = "openseo_session";
 const id = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
@@ -116,6 +117,32 @@ export async function handleOpenSeoProxy(request: NextRequest, segments: string[
       throw new Error();
   } catch {
     return jsonError("OPENSEO_NOT_CONFIGURED", 503);
+  }
+
+  if (request.cookies.has(kediCookie)) {
+    try {
+      const session = await readKediSession(request);
+      if (!session) return jsonError("KEDI_SESSION_REQUIRED", 401);
+      if (isSession && method !== "GET") return jsonError("KEDI_MANAGED_ACCOUNT", 403);
+      let body;
+      if (method === "POST") {
+        if (request.headers.get("content-type")?.split(";")[0] !== "application/json")
+          return jsonError("VALIDATION_ERROR", 400);
+        body = JSON.stringify(await readBody(request));
+      }
+      const upstream = await fetch(new URL(`/api/integrations/v1/${path}`, target), {
+        method, headers: { "Content-Type": "application/json", "X-OpenSEO-Client": "rybbit",
+          "X-Kedi-SEO-Grant": session.grant, Origin: base.origin }, body,
+        redirect: "manual", cache: "no-store", signal: AbortSignal.timeout(30000),
+      });
+      if (!upstream.headers.get("content-type")?.includes("application/json")) {
+        await upstream.body?.cancel();
+        return jsonError("OPENSEO_INVALID_RESPONSE", 502);
+      }
+      return new NextResponse(upstream.body, { status: upstream.status, headers: {
+        "Content-Type": "application/json", "Cache-Control": "private, no-store",
+      } });
+    } catch { return jsonError("KEDI_SESSION_REQUIRED", 401); }
   }
 
   // Bind the secondary session to the current, server-verified Rybbit user.

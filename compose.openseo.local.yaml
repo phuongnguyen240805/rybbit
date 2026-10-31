@@ -14,6 +14,7 @@ services:
     mem_limit: 96m
     cpus: 0.25
   backend:
+    image: kedi-seo-local/rybbit-backend:dev
     container_name: kedi-seo-local-rybbit-backend
     mem_limit: 512m
     cpus: 1
@@ -21,6 +22,8 @@ services:
       NODE_ENV: development
       NODE_OPTIONS: --max-old-space-size=384
       CLUSTER_WORKERS: "1"
+      KEDI_SEO_ADMIN_ORIGIN: ${KEDI_SEO_ADMIN_ORIGIN:-http://localhost:3000}
+      KEDI_SEO_SSO_SECRET: ${KEDI_SEO_SSO_SECRET:-}
     healthcheck:
       start_period: 120s
       interval: 5s
@@ -42,6 +45,8 @@ services:
       OPENSEO_INTERNAL_URL: http://web
       OPENSEO_SESSION_SECRET: ${OPENSEO_SESSION_SECRET:?Set a random session encryption secret}
       RYBBIT_INTERNAL_URL: http://backend:3001
+      KEDI_SEO_ADMIN_ORIGIN: ${KEDI_SEO_ADMIN_ORIGIN:-http://localhost:3000}
+      KEDI_SEO_SSO_SECRET: ${KEDI_SEO_SSO_SECRET:-}
     depends_on:
       backend:
         condition: service_healthy
@@ -61,12 +66,20 @@ services:
         target: /opt/openseo
         read_only: true
   init:
+    environment:
+      KEDI_SEO_ADMIN_ORIGIN: ${KEDI_SEO_ADMIN_ORIGIN:-http://localhost:3000}
+      KEDI_SEO_FRONTEND_ORIGIN: http://localhost:3002
+      KEDI_SEO_SSO_SECRET: ${KEDI_SEO_SSO_SECRET:-}
     mem_limit: 384m
     cpus: 1
     volumes:
       - type: bind
         source: ${OPENSEO_BUNDLE_DIR:-../open-seo/dist/celld}
         target: /opt/openseo
+        read_only: true
+      - type: bind
+        source: ../open-seo/scripts/celld/runtime/configure.mjs
+        target: /opt/standalone/configure.mjs
         read_only: true
   crawl-gateway:
     mem_limit: 128m

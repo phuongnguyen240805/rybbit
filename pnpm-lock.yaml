@@ -184,6 +184,9 @@ importers:
       ip-address:
         specifier: ^10.0.1
         version: 10.2.0
+      jose:
+        specifier: ^6.2.12
+        version: 6.2.12
       jotai:
         specifier: 2.17.1
         version: 2.17.1(@babel/core@7.28.5)(@babel/template@7.27.2)(@types/react@19.2.7)(react@19.2.4)
@@ -419,6 +422,9 @@ importers:
       ip-address:
         specifier: ^10.0.1
         version: 10.2.0
+      jose:
+        specifier: ^6.2.12
+        version: 6.2.12
       luxon:
         specifier: 3.7.2
         version: 3.7.2

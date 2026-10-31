@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
+async function routeProxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const path = url.pathname;
+
+  if (path === "/kedi") {
+    const response = NextResponse.next();
+    const parent = process.env.KEDI_SEO_ADMIN_ORIGIN;
+    response.headers.set("Content-Security-Policy", `frame-ancestors 'self'${parent ? ` ${new URL(parent).origin}` : ""}`);
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
+  }
 
   // Skip redirects for static files (favicon.ico, images, etc.)
   if (path.includes(".")) {
@@ -78,6 +86,13 @@ export async function proxy(request: NextRequest) {
   }
 
   return NextResponse.next();
+}
+
+export async function proxy(request: NextRequest) {
+  const response = await routeProxy(request);
+  const parent = process.env.KEDI_SEO_ADMIN_ORIGIN;
+  if (parent) response.headers.set("Content-Security-Policy", `frame-ancestors 'self' ${new URL(parent).origin}`);
+  return response;
 }
 
 // Only run middleware on specific paths, exclude asset paths

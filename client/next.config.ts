@@ -22,7 +22,9 @@ const nextConfig: NextConfig = {
       ? {
           // /api/user/* also matches the dynamic profile page. Route Rybbit
           // API calls first while explicitly retaining OpenSEO's local BFF.
-          beforeFiles: [{ source: "/api/:path((?!openseo(?:/|$)).*)", destination: `${backend}/api/:path` }],
+          beforeFiles: [{ source: "/api/:path((?!(?:openseo|kedi-seo)(?:/|$)).*)",
+            missing: [{ type: "cookie", key: "kedi_seo_session" }],
+            destination: `${backend}/api/:path` }],
         }
       : [];
   },
