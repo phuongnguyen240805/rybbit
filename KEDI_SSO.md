@@ -40,6 +40,12 @@ Browser verification used the actual parent frame component and Docker frontend:
 
 ## Local verification, 2026-10-31
 
+### Site-card permission regression, 2026-11-01
+
+The homepage's `site-cards` and `site-cards-lite` endpoints are read-only POST queries, not organization mutations. The shared Kedi policy now recognizes exact read-only POST analytics paths, and the backend uses the same classification for staff. Native organization/site permission guards still run, including checking every requested site ID. Membership, credentials and writes remain restricted. Empty session charts bypass Nivo rather than generating an invalid `d="null"` path.
+
+Regression checks passed: 32 client tests and 70 server tests, frontend production build and backend TypeScript compilation. Live standard site-card queries returned 200 with zero sessions/users for owner and staff. Staff creation, cross-organization requests and foreign site IDs still returned 403. The homepage browser check showed its website card, a 200 card response and no invalid SVG paths or page exceptions. The local stack has Lite Dashboard disabled and lacks its materialized-view tables; live SQL verification used the standard endpoint, while permission/handler tests cover both variants. No schema migration was introduced.
+
 - Rybbit integration tests: 30; OpenSEO integration tests: 18; Kedi BFF and Nest membership tests: 8. The Rybbit frontend production Docker build, OpenSEO standalone build and backend TypeScript compilation passed.
 - Headless browser mounted the actual Kedi iframe component with a signed isolated issuer fixture, then used the real Docker Rybbit/OpenSEO services. It verified the shared identity, no secondary login, website creation, project selection, a completed example.com audit (one page, four issues), and successful requests after heartbeat renewal.
 - Kedi's real unauthenticated issuance route and Nest context route returned 401. The browser smoke did not log into a real Kedi account; final account-specific acceptance is separate from the isolated integration smoke.

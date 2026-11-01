@@ -35,6 +35,9 @@ export function SiteSessionChart({ data }: SiteSessionChartProps) {
   }, [data]);
   const nivoTheme = useNivoTheme();
 
+  // Nivo produces an invalid SVG path for a completely empty series.
+  if (!data?.length) return <div className="h-full w-full" role="img" aria-label={t("No data")} />;
+
   return (
     <ResponsiveLine
       data={chartData}

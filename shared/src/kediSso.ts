@@ -10,12 +10,21 @@ export interface KediClaims {
   exp: number;
 }
 
+// These POST endpoints query analytics; the native route guards still check
+// membership, site access and read-only SQL. Do not treat every POST as a write.
+export function kediReadOnlyRequest(path: string, method: string) {
+  if (["GET", "HEAD"].includes(method)) return true;
+  if (method !== "POST") return false;
+  return /^organizations\/[^/]+\/(?:site-cards(?:-lite)?|analytics\/query)$/.test(path) ||
+    /^sites\/[^/]+\/(?:funnels\/analyze|funnels\/\d+\/sessions|dashboards\/run-card|feature-flags\/evaluate)$/.test(path);
+}
+
 export function kediPathAllowed(path: string, method: string) {
   if (path.startsWith("auth/")) return ["auth/get-session", "auth/sign-out", "auth/organization/list",
     "auth/organization/get-full-organization", "auth/organization/set-active"].includes(path);
   if (method === "POST" && /^organizations\/[^/]+\/sites$/.test(path)) return true;
   if (/^sites\/[^/]+\/transfer(?:\/|$)/.test(path)) return false;
-  return ["GET", "HEAD"].includes(method) || !(/api-keys|members|teams|invitations/.test(path) ||
+  return kediReadOnlyRequest(path, method) || !(/api-keys|members|teams|invitations/.test(path) ||
     /^(?:admin|user|organizations)(?:\/|$)/.test(path));
 }
 

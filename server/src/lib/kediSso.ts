@@ -1,7 +1,7 @@
 import { jwtVerify } from "jose";
 import { createAuthEndpoint, APIError, getSessionFromCtx } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";
-import { kediIdentity, parseKediClaims, kediPathAllowed } from "@rybbit/shared";
+import { kediIdentity, parseKediClaims, kediPathAllowed, kediReadOnlyRequest } from "@rybbit/shared";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { auth as Auth } from "./auth.js";
 import { eq } from "drizzle-orm";
@@ -24,9 +24,10 @@ export function kediSessionGuard(auth: typeof Auth) {
       });
       const claims = parseKediClaims(payload);
       const identity = await kediIdentity(claims);
+      const path = request.url.split("?")[0].replace(/^\/api\//, "");
       if (claims.embedOrigin !== process.env.BASE_URL || identity.userId !== session.user.id ||
-        (claims.role === "staff" && !["GET", "HEAD"].includes(request.method)) ||
-        !kediPathAllowed(request.url.split("?")[0].replace(/^\/api\//, ""), request.method)) throw new Error();
+        (claims.role === "staff" && !kediReadOnlyRequest(path, request.method)) ||
+        !kediPathAllowed(path, request.method)) throw new Error();
     } catch { return reply.code(403).send({ error: "KEDI_SESSION_REQUIRED" }); }
   };
 }

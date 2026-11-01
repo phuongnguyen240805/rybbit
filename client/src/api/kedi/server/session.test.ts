@@ -2,9 +2,9 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { SignJWT } from "jose";
 import { NextRequest } from "next/server";
 import { exchangeKediSession, readKediSession, kediCookie } from "./session";
-import { kediIdentity, kediPathAllowed, parseKediClaims } from "@rybbit/shared";
+import { kediIdentity, kediPathAllowed, kediReadOnlyRequest, parseKediClaims } from "@rybbit/shared";
 import { handleOpenSeoProxy } from "@/api/openseo/server/proxy";
-import { GET as proxyRybbit } from "@/app/api/[...kediProxy]/route";
+import { GET as proxyRybbit, POST as proxyPost } from "@/app/api/[...kediProxy]/route";
 
 const secret = "local-test-key-never-use-outside-tests-123456";
 const issuer = "https://admin.example.com";
@@ -119,5 +119,25 @@ describe("Kedi SSO boundary", () => {
     expect(kediPathAllowed("organizations/org/sites", "POST")).toBe(true);
     expect(kediPathAllowed("sites/1/transfer", "POST")).toBe(false);
     expect(kediPathAllowed("analytics", "GET")).toBe(true);
+  });
+  it.each(["site-cards", "site-cards-lite"])("forwards read-only POST %s with the user's proof and query body", async endpoint => {
+    const first = await exchangeKediSession(request(await grant({ role: "staff" })));
+    const cookie = first.cookies.get(kediCookie)!;
+    network.mockResolvedValueOnce(Response.json({ data: { 2: { current: { sessions: 0, users: 0 }, series: [] } } }));
+    const path = `organizations/${organizationId}/${endpoint}`;
+    const body = { siteIds: [2], comparison: null };
+    const response = await proxyPost(new NextRequest(`${frontend}/api/${path}?bucket=hour`, {
+      method: "POST", headers: { Cookie: `${kediCookie}=${cookie.value}`, Origin: frontend, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }), { params: Promise.resolve({ kediProxy: path.split("/") }) });
+    expect(response.status).toBe(200);
+    expect(new Headers(network.mock.calls[1][1]?.headers).get("x-kedi-seo-grant")).toBeTruthy();
+    expect(JSON.parse(Buffer.from(network.mock.calls[1][1]?.body as Uint8Array).toString())).toEqual(body);
+  });
+  it("does not classify nearby organization mutations as reads", () => {
+    expect(kediReadOnlyRequest("organizations/org/sites", "POST")).toBe(false);
+    expect(kediReadOnlyRequest("organizations/org/members", "POST")).toBe(false);
+    expect(kediPathAllowed("organizations/org/site-cards/delete", "POST")).toBe(false);
+    expect(kediReadOnlyRequest("organizations/org/site-cards", "DELETE")).toBe(false);
   });
 });
