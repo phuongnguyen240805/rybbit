@@ -8,10 +8,16 @@ Backend Rybbit xử lý analytics; OpenSEO xử lý audit. Cần cả hai backen
 
 Nhánh triển khai Rybbit: `codex/cloudflare-dokploy`; OpenSEO:
 `codex/dokploy-kedi`. Hai nhánh chứa cả phần tích hợp Kedi trước đó.
-Đưa các nhánh này lên repository GitHub của bạn. Rybbit hiện
-đang dùng remote upstream `rybbit-io/rybbit`: hãy dùng fork riêng để Dokploy
-truy cập source tùy chỉnh. Không deploy nguyên image upstream vì thiếu SSO.
-OpenSEO dùng fork `phuongnguyen240805/open-seo`, cũng phải chọn nhánh có tích hợp.
+Các nhánh đã được đẩy lên GitHub:
+
+- Rybbit: [phuongnguyen240805/rybbit](https://github.com/phuongnguyen240805/rybbit),
+  nhánh `codex/cloudflare-dokploy`.
+- OpenSEO: [phuongnguyen240805/open-seo](https://github.com/phuongnguyen240805/open-seo),
+  nhánh `codex/dokploy-kedi`.
+
+Trong Dokploy chọn đúng nhánh nêu trên. Remote `origin` của Rybbit trỏ vào
+fork riêng; `upstream` giữ liên kết với `rybbit-io/rybbit` để cập nhật sau này.
+Không deploy nguyên image upstream vì thiếu SSO.
 Không commit `.env`, khóa, cookie hoặc file credential.
 
 Hai ứng dụng Dokploy dùng Docker Compose, không phải Docker Stack/Swarm.
