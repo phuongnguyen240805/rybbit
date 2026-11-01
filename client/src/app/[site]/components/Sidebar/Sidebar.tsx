@@ -76,7 +76,7 @@ function SidebarContent() {
         {/* Keyboard-first, so desktop only (this sidebar also renders in the mobile sheet). */}
         {!embed && <CommandPaletteTrigger className="mt-2 hidden md:flex" />}
       </div>
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3 pt-1">
+      <div className="kedi-sub-sidebar-scroll flex min-h-0 flex-1 flex-col overflow-y-auto p-3 pt-1">
         <div className="mt-2">
           <SidebarComponents.Item
             label={t("Main")}
