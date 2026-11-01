@@ -5,7 +5,7 @@ import path from "node:path";
 const withNextIntl = createNextIntlPlugin({
   experimental: {
     srcPath: "./src",
-    extract: true,
+    extract: process.env.KEDI_CLOUDFLARE_BUILD === "true" ? undefined : true,
     messages: {
       sourceLocale: "en",
       path: "./messages",
@@ -16,6 +16,9 @@ const withNextIntl = createNextIntlPlugin({
 });
 
 const nextConfig: NextConfig = {
+  experimental: {
+    optimizePackageImports: ["@icons-pack/react-simple-icons"],
+  },
   async rewrites() {
     const backend = process.env.RYBBIT_INTERNAL_URL?.replace(/\/$/, "");
     return backend
@@ -28,7 +31,7 @@ const nextConfig: NextConfig = {
         }
       : [];
   },
-  output: "standalone",
+  output: process.env.KEDI_CLOUDFLARE_BUILD === "true" ? undefined : "standalone",
   outputFileTracingRoot: path.resolve(__dirname, ".."),
   turbopack: {
     root: path.resolve(__dirname, ".."),

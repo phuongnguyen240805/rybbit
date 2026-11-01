@@ -38,7 +38,7 @@ export async function readKediSession(request: NextRequest) {
 function seal(value: Session) {
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key(), iv);
-  const encrypted = Buffer.concat([cipher.update(JSON.stringify(value)), cipher.final()]);
+  const encrypted = Buffer.concat([cipher.update(JSON.stringify(value), "utf8"), cipher.final()]);
   return Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64url");
 }
 export async function exchangeKediSession(request: NextRequest) {

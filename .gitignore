@@ -11,6 +11,13 @@ build/
 .env
 .env.local
 .env.*.local
+.dev.vars
+.dev.vars.*
+.wrangler/
+.vinext/
+.cf-dry/
+worker-configuration.d.ts
+skills-lock.json
 
 # Logs
 logs

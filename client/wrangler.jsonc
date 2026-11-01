@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kedi-seo",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "vinext/server/fetch-handler",
+  "assets": {
+    "directory": "dist/client",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/*",
+      "!/_next/static/*",
+      "!/*/_next/static/*"
+    ]
+  },
+  "account_id": "a220275c9c8460745e0351255c7459fd",
+  "workers_dev": true,
+  "keep_vars": true,
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  "vars": {
+    "KEDI_SEO_ADMIN_ORIGIN": "https://ladipage.gofiber-phuongnguyen.workers.dev",
+    "OPENSEO_FRONTEND_ORIGIN": "https://kedi-seo.gofiber-phuongnguyen.workers.dev"
+  }
+}

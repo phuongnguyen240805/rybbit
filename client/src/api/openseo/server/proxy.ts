@@ -52,7 +52,7 @@ function sessionCookie(request: NextRequest, userId: string, secret: string): st
 function sealSession(cookie: string, userId: string, secret: string) {
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", createHash("sha256").update(secret).digest(), iv);
-  const encrypted = Buffer.concat([cipher.update(JSON.stringify({ cookie, userId })), cipher.final()]);
+  const encrypted = Buffer.concat([cipher.update(JSON.stringify({ cookie, userId }), "utf8"), cipher.final()]);
   return Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64url");
 }
 
