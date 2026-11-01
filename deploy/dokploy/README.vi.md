@@ -61,8 +61,11 @@ Tạo Docker Compose service thứ hai `openseo` trong cùng Project:
 5. Điền storage access/secret key ngẫu nhiên. Các API key nhà cung cấp chỉ điền
    khi sử dụng chức năng tương ứng; kiểm tra quota/billing của nhà cung cấp.
 6. Domains: HTTPS của OpenSEO, service **web**, port **80**, path `/`.
-7. Dùng Isolated Deployments/Preview Compose như trên; web, runtime, init,
-   storage và crawl-gateway phải kết nối được trong network của ứng dụng.
+7. Tắt **Isolated Deployments** cho OpenSEO vì `init` dùng
+   `network_mode: service:runtime`. Compose đã nối `web` vào cả network private
+   `default` và network ngoài `dokploy-network` để Traefik truy cập được.
+   Trong Preview Compose, `web` phải giữ cả hai network; `init` không được có
+   thêm trường `networks` bên cạnh `network_mode`.
 8. Deploy. `init` chạy một lần và exit 0 là bình thường; runtime cần healthy,
    web và crawl-gateway cần running. Init tự cấu hình và áp dụng migration cho
    database mới. Chờ init xong trước khi kiểm tra API.
